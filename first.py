@@ -30,7 +30,7 @@ print(dataset.groupby('class').size())
 # multivariate plots: to better understand the relationships between attributes
 
 # UNIVARIATE:
-dataset.plot(kind='box', subplots=True, layout=(2,2), sharex=False, sharey=False)
+dataset.plot(kind='box', subplots=True, layout=(2, 2), sharex=False, sharey=False)
 # shows gaussian distribution (= normalverteilung)
 dataset.hist()
 
@@ -60,3 +60,27 @@ X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(
 # pseudorandom number generators are not really random. They use a seed and determine random-looking numbers in a deterministic process
 # if the generator is not explicitly seeded, it may use the current system time in seconds or milliseconds
 # the value of the seed does not matter, but the same seeding will result in the same sequence of random numbers
+# when to seed a random number generator: in data preparation, because the data must always be prepared in the same way during fitting, evaluation and when making predictions;
+# also, when making data splits, because each algorithm should be trained on the same subset
+# how to control for randomness: using the same seed each time is bad practise, because it hides the uncertainety within the model;to prevent this, one could evaluate the algorithm several times with different seeds
+# data uncertainty: evaluating an algorithm on multiple splits of the data will show how the performance varies with changes to the train and test data
+# algorithm uncertainty: evaluating an algorithm multiple times on the same splits of data will give insights into how the algorithm performance varies alone
+
+# Spot Check Algorithms
+models = []
+models.append(('LR', LogisticRegression()))
+models.append(('LDA', LinearDiscriminantAnalysis()))
+models.append(('KNN', KNeighborsClassifier()))
+models.append(('CART', DecisionTreeClassifier()))
+models.append(('NB', GaussianNB()))
+models.append(('SVM', SVC()))
+# evaluate each model in turn
+results = []
+names = []
+for name, model in models:
+    kfold = model_selection.KFold(n_splits=10, random_state=seed)
+    cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+    results.append(cv_results)
+    names.append(name)
+    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+    print(msg)
